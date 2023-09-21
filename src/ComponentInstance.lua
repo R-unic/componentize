@@ -1,6 +1,6 @@
 --!native
 --!strict
-local Janitor = require(script.Parent.Parent.Parent.janitor)
+local Janitor = require(script.Parent.Parent.janitor)
 local ServiceEventLinker = require(script.Parent.ServiceEventLinker)
 local Types = require(script.Parent.Types)
 
