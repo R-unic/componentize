@@ -1,8 +1,6 @@
 --!native
 --!strict
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local Janitor = require(ReplicatedStorage.Packages.janitor)
+local Janitor = require(script.Parent.Parent.Parent.janitor)
 local ServiceEventLinker = require(script.Parent.ServiceEventLinker)
 local Types = require(script.Parent.Types)
 
