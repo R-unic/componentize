@@ -1,0 +1,11 @@
+[package]
+name = "runic/componentize"
+description = "Component system"
+version = "0.1.0"
+license = "MIT"
+authors = ["Riley Peel <roleyspersonal@gmail.com>"]
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+
+[dependencies]
+janitor = "howmanysmall/janitor@1.15.6"
