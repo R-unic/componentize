@@ -1,5 +1,5 @@
 [package]
-name = "runic/componentize"
+name = "r-unic/componentize"
 description = "Component system"
 version = "0.1.0"
 license = "MIT"
