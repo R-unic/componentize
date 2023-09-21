@@ -3,7 +3,7 @@
 local CollectionService = game:GetService("CollectionService")
 
 local ComponentInstance = require(script.ComponentInstance)
-local Array = require(script.Array)
+local Array = require(script.Parent.array)
 local Types = require(script.Types)
 
 local ComponentClasses = {}
