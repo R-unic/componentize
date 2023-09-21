@@ -1,7 +1,7 @@
 --!native
 --!strict
 local Janitor = require(script.Parent.Parent.janitor)
-local ServiceEventLinker = require(script.Parent.ServiceEventLinker)
+local ServiceEventLinker = require(script.Parent.Parent["service-event-linker"])
 local Types = require(script.Parent.Types)
 
 local ComponentInstance = {}

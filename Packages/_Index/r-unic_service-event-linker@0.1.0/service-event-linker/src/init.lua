@@ -1,6 +1,6 @@
 --!native
 --!strict
-local Janitor = require(script.Parent.Parent.janitor)
+local Janitor = require(script.Parent.janitor)
 
 type LinkableObject = {
 	[string]: (...any) -> nil;

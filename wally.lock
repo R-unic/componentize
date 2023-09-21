@@ -13,6 +13,11 @@ version = "1.15.6"
 dependencies = [["Promise", "evaera/promise@4.0.0"]]
 
 [[package]]
-name = "runic/componentize"
+name = "r-unic/componentize"
+version = "0.1.2"
+dependencies = [["janitor", "howmanysmall/janitor@1.15.6"], ["service-event-linker", "r-unic/service-event-linker@0.1.0"]]
+
+[[package]]
+name = "r-unic/service-event-linker"
 version = "0.1.0"
 dependencies = [["janitor", "howmanysmall/janitor@1.15.6"]]
