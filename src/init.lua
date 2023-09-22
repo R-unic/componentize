@@ -76,6 +76,18 @@ function Component:_ValidateDef(instance: Instance): nil
 				for childName, child: InstanceGuard<any> in guard.Value :: any do
 					validateGuard(i:FindFirstChild(childName) :: Instance, child)
 				end
+			elseif guard.PropertyName == "Ancestors" then
+				assert(typeof(guard.Value) == "table", "Ancestors property must be a table!")
+				assert(#guard.Value > 0, "Ancestors property must have more than one element!")
+
+				local ancestors = Array.new(guard.Value)
+				assert(ancestors:Every(function(ancestor)
+					return typeof(ancestor) == "Instance"
+				end), "Ancestors table property must only contain instances!")
+				
+				assert(ancestors:Some(function(ancestor)
+					return ancestor:IsAncestorOf(instance)
+				end), `Expected ancestors {ancestors:ToTable()} for instance {instance:GetFullName()}`)
 			else
 				local hasProperty = pcall(function()
 					return (instance :: any)[guard.PropertyName]
@@ -94,20 +106,6 @@ function Component:_ValidateDef(instance: Instance): nil
 			})
 		end
 	end
-	if componentDef.Ancestors ~= nil then
-		assert(typeof(componentDef.Ancestors) == "table", "Ancestors property must be a table!")
-		assert(#componentDef.Ancestors > 0, "Ancestors property must have more than one element!")
-
-		local ancestors = Array.new(componentDef.Ancestors)
-		assert(ancestors:Every(function(ancestor)
-			return typeof(ancestor) == "Instance"
-		end), "Ancestors table property must only contain instances!")
-		
-		assert(ancestors:Some(function(ancestor)
-			return ancestor:IsAncestorOf(instance)
-		end), `Expected ancestors {ancestors:ToTable()} for instance {instance:GetFullName()}`)
-	end
-	return
 end
 
 function Component:Add(instance: Instance): ComponentInstance.ComponentInstance
