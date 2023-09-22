@@ -1,0 +1,1 @@
+{"name":"componentize","className":"ModuleScript","filePaths":["src\\init.lua","default.project.json"],"children":[{"name":"ComponentInstance","className":"ModuleScript","filePaths":["src\\ComponentInstance.lua"]},{"name":"Types","className":"ModuleScript","filePaths":["src\\Types.lua"]}]}

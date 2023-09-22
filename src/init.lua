@@ -12,10 +12,16 @@ Component.__index = Component
 
 export type Def = Types.ComponentDef
 
+function Component.Load(module: ModuleScript): nil
+	table.insert(ComponentClasses, require(module) :: any)
+	return
+end
+
 function Component.LoadFolder(folder: Folder): nil
 	for _, module: Instance in folder:GetDescendants() do
-		if not module:IsA("ModuleScript") then continue end
-		table.insert(ComponentClasses, require(module) :: any)
+		if module:IsA("ModuleScript") then
+			Component.Load(module)
+		end
 	end
 	return
 end
@@ -52,7 +58,7 @@ function Component.new(def: Types.ComponentDef, options: Types.ComponentOptions?
 end
 
 function Component:Find(instance: Instance): ComponentInstance.ComponentInstance?
-	return self._ownedComponents:Find(function(component)
+	return self._ownedComponents:Find(function(component: ComponentInstance.ComponentInstance)
 		return component.Instance == instance
 	end)
 end
