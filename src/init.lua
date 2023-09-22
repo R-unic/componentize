@@ -89,13 +89,24 @@ function Component:Add(instance: Instance): ComponentInstance.ComponentInstance
 	validateComponentDef(componentDef, instance)
 	
 	local component = ComponentInstance.new(instance, componentDef)
-	local prefix = "Event_"
+	local eventPrefix = "Event_"
+	local propertyChangePrefix = "PropertyChanged_"
+	local function hasPrefix(name: string, prefix: string): boolean
+		return name:sub(1, #prefix) == prefix
+	end
+
 	for name: string, fn in componentDef do
 		if typeof(fn) ~= "function" then continue end
-		if name:sub(1, #prefix) == prefix then
-			local eventName = name:split(prefix)[2]
-			component:AddToJanitor((instance :: any)[eventName]:Connect(function(...)
+		local fn: (component: typeof(ComponentInstance)) -> () = fn
+
+		local rightName = name:split("_")[2]
+		if hasPrefix(name, eventPrefix) then
+			component:AddToJanitor((instance :: any)[rightName]:Connect(function(...)
 				(fn :: any)(component, ...)
+			end))
+		elseif hasPrefix(name, propertyChangePrefix) then
+			component:AddToJanitor(instance:GetPropertyChangedSignal(rightName):Connect(function()
+				fn(component)
 			end))
 		end
 	end
