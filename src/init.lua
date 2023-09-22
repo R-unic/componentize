@@ -130,6 +130,7 @@ function Component:Add(instance: Instance): ComponentInstance.ComponentInstance
 	local component = ComponentInstance.new(instance, componentDef)
 	local eventPrefix = "Event_"
 	local propertyChangePrefix = "PropertyChanged_"
+	local attributeChangePrefix = "AttributeChanged_"
 
 	for name: string, fn in componentDef do
 		if typeof(fn) ~= "function" then continue end
@@ -143,6 +144,10 @@ function Component:Add(instance: Instance): ComponentInstance.ComponentInstance
 				end))
 			elseif hasPrefix(name, propertyChangePrefix) then
 				component:AddToJanitor(instance:GetPropertyChangedSignal(rightName):Connect(function()
+					fn(component)
+				end))
+			elseif hasPrefix(name, attributeChangePrefix) then
+				component:AddToJanitor(instance:GetAttributeChangedSignal(rightName):Connect(function()
 					fn(component)
 				end))
 			end
