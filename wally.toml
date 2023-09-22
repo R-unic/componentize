@@ -1,13 +1,13 @@
 [package]
 name = "r-unic/componentize"
 description = "Component system"
-version = "0.1.6"
+version = "0.2.0"
 license = "MIT"
 authors = ["Runic"]
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 
 [dependencies]
-janitor = "howmanysmall/janitor@1.15.6"
-service-event-linker = "r-unic/service-event-linker@0.1.0"
-array = "r-unic/array@0.2.1"
+Janitor = "howmanysmall/janitor@1.15.6"
+ServiceEventLinker = "r-unic/service-event-linker@0.1.0"
+Array = "r-unic/array@0.2.1"

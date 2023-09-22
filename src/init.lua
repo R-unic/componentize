@@ -3,7 +3,7 @@
 local CollectionService = game:GetService("CollectionService")
 
 local ComponentInstance = require(script.ComponentInstance)
-local Array = require(script.Parent.array)
+local Array = require(script.Parent.Array)
 local Types = require(script.Types)
 
 local ComponentClasses = {}
@@ -63,10 +63,36 @@ function Component:Find(instance: Instance): ComponentInstance.ComponentInstance
 	end)
 end
 
-local function validateComponentDef(componentDef: Types.ComponentDef, instance: Instance): nil
-	if componentDef.ClassName ~= nil then
-		assert(typeof(componentDef.ClassName) == "string", "ClassName property must be a string!")
-		assert(componentDef.ClassName == instance.ClassName, `Expected instance to be of type {componentDef.ClassName}, got {instance.ClassName}!`)
+type InstanceGuard<T> = {
+	PropertyName: string;
+	Value: T;
+}
+
+function Component:_ValidateDef(instance: Instance): nil
+	local componentDef: Types.ComponentDef = self._def
+	if componentDef.Guards ~= nil then
+		local function validateGuard<T>(i: Instance, guard: InstanceGuard<T>): nil
+			if guard.PropertyName == "Children" then
+				for childName, child: InstanceGuard<any> in guard.Value :: any do
+					validateGuard(i:FindFirstChild(childName) :: Instance, child)
+				end
+			else
+				local hasProperty = pcall(function()
+					return (instance :: any)[guard.PropertyName]
+				end)
+	
+				assert(hasProperty, `Instance "{instance:GetFullName()} does not have property "{guard.PropertyName}".`)
+				assert(guard.Value == (instance :: any)[guard.PropertyName], `Expected value of instance property "{guard.PropertyName}" to equal {componentDef[guard.PropertyName]}, got {(instance :: any)[guard.PropertyName]}!`)
+			end
+			return
+		end
+
+		for propertyName, value in componentDef.Guards do
+			validateGuard(instance, {
+				PropertyName = propertyName,
+				Value = value
+			})
+		end
 	end
 	if componentDef.Ancestors ~= nil then
 		assert(typeof(componentDef.Ancestors) == "table", "Ancestors property must be a table!")
@@ -85,9 +111,9 @@ local function validateComponentDef(componentDef: Types.ComponentDef, instance: 
 end
 
 function Component:Add(instance: Instance): ComponentInstance.ComponentInstance
-	local componentDef = self._def
-	validateComponentDef(componentDef, instance)
+	self:_ValidateDef(instance)
 	
+	local componentDef = self._def
 	local component = ComponentInstance.new(instance, componentDef)
 	local eventPrefix = "Event_"
 	local propertyChangePrefix = "PropertyChanged_"

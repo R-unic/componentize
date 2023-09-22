@@ -6,7 +6,7 @@ export type ComponentOptions = {
 
 export type ComponentDef = {
 	Name: string;
-	ClassName: string?;
+	Guards: { [string]: any } ?;
 	Ancestors: { Instance }?;
 	[string]: any;
 }
