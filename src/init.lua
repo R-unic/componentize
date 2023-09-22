@@ -12,6 +12,13 @@ Component.__index = Component
 
 export type Def = Types.ComponentDef
 
+function Component.Get(name: string): ComponentInstance.ComponentInstance?
+	return Array.new(ComponentClasses)
+		:Find(function(component)
+			return component.Name == name
+		end)
+end
+
 function Component.Load(module: ModuleScript): nil
 	table.insert(ComponentClasses, require(module) :: any)
 	return
@@ -33,6 +40,7 @@ function Component.new(def: Types.ComponentDef, options: Types.ComponentOptions?
 	assert(#def.Name > 0, "Component name must have at least one character!")
 
 	local self = setmetatable({}, Component)
+	self.Name = def.Name
 	self._def = def
 	self._ownedComponents = Array.new("table")
 
