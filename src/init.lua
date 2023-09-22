@@ -92,6 +92,15 @@ local function validateGuard<T>(instance: Instance, guard: InstanceGuard<T>): ni
 		assert(ancestors:Some(function(ancestor)
 			return ancestor:IsAncestorOf(instance)
 		end), `Expected ancestors {ancestors:ToTable()} for instance {instance:GetFullName()}`)
+	elseif guard.PropertyName == "IsA" then
+		assert(typeof(guard.Value) == "string" or typeof(guard.Value) == "Instance", "IsA property must be an Instance or a string!")
+		
+		local message = `Expected instance {instance:GetFullName()} to be a sub-class of {guard.Value}, got {instance.ClassName}!`
+		if typeof(guard.Value) == "Instance" then
+			assert(instance:IsA(guard.Value.ClassName), message)
+		else
+			assert(instance:IsA(guard.Value), message)
+		end
 	else
 		local hasProperty = pcall(function()
 			return (instance :: any)[guard.PropertyName]
