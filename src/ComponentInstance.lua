@@ -6,28 +6,10 @@ local Types = require(script.Parent.Types)
 
 local ComponentInstance = {}
 
-type AttributeValue =
-	string
-	| boolean
-	| number
-	| UDim
-	| UDim2
-	| BrickColor
-	| Color3
-	| Vector2
-	| Vector3
-	| CFrame
-	| NumberSequence
-	| ColorSequence
-	| NumberRange
-	| Rect
-	| Font
-
-export type ComponentInstance = Options & typeof(ComponentInstance)
-export type Options = {
+export type ComponentInstance = typeof(ComponentInstance) & {
 	Instance: Instance;
 	PrimaryPart: BasePart?;
-	Attributes: { [string]: AttributeValue };
+	Attributes: { [string]: Types.AttributeValue };
 }
 
 function ComponentInstance.new(instance: Instance, def: Types.ComponentDef): typeof(ComponentInstance)

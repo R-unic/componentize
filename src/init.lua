@@ -47,9 +47,9 @@ function Component.new(def: Types.ComponentDef, options: Types.ComponentOptions?
 	assert(#def.Name > 0, "Component name must have at least one character!")
 
 	local self = setmetatable({}, Component)
+	self.OwnedComponents = Array.new("table")
 	self.Name = def.Name
 	self._def = def
-	self._ownedComponents = Array.new("table")
 
 	self._useTags = true
 	if options and options.UseTags ~= nil then
@@ -77,7 +77,7 @@ function Component:_Start(): nil
 end
 
 function Component:Find(instance: Instance): ComponentInstance.ComponentInstance?
-	return self._ownedComponents:Find(function(component: ComponentInstance.ComponentInstance)
+	return self.OwnedComponents:Find(function(component: ComponentInstance.ComponentInstance)
 		return component.Instance == instance
 	end)
 end
@@ -197,7 +197,7 @@ function Component:Add(instance: Instance): ComponentInstance.ComponentInstance
 		end)
 	end
 
-	self._ownedComponents:Push(component)
+	self.OwnedComponents:Push(component)
 	return component :: ComponentInstance.ComponentInstance
 end
 
@@ -212,7 +212,7 @@ function Component:Remove(instance: Instance, ignoreErrors: boolean?): nil
 	end
 
 	if component then
-		(self._ownedComponents :: any):RemoveValue(component)
+		(self.OwnedComponents :: any):RemoveValue(component)
 		component:Destroy()
 	end
 	return
