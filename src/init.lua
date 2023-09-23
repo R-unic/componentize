@@ -143,9 +143,17 @@ local function hasPrefix(name: string, prefix: string): boolean
 end
 
 function Component:Add(instance: Instance): ComponentInstance.ComponentInstance
-	self:_ValidateDef(instance)
+	local ignored = false
+	local componentDef: Def = self._def
+	for _, ignoredAncestor in componentDef.IgnoreAncestors do
+		if ignoredAncestor:IsAncestorOf(instance) then
+			ignored = true
+			break
+		end
+	end
 
-	local componentDef = self._def
+	if ignored then return end
+	self:_ValidateDef(instance)
 	local component = ComponentInstance.new(instance, componentDef)
 	local eventPrefix = "Event_"
 	local propertyChangePrefix = "PropertyChanged_"

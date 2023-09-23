@@ -7,6 +7,7 @@ export type ComponentOptions = {
 export type ComponentDef = {
 	Name: string;
 	Guards: { [string]: any } ?;
+	IgnoreAncestors: { Instance }?;
 	Ancestors: { Instance }?;
 	[string]: any;
 }
