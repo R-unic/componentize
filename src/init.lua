@@ -11,8 +11,12 @@ local Component = {}
 Component.__index = Component
 
 export type Def = Types.ComponentDef
+export type Component = typeof(Component) & {
+	Name: string;
+	OwnedComponents: typeof(Array);
+}
 
-function Component.Get(name: string): typeof(Component)
+function Component.Get(name: string): Component
 	local component = _G.ComponentClasses
 		:Find(function(component)
 			return component.Name == name
@@ -37,7 +41,7 @@ function Component.LoadFolder(folder: Folder): nil
 end
 
 function Component.StartComponents(): nil
-	for component: typeof(Component) & { Name: string } in _G.ComponentClasses:Values() do
+	for component: Component in _G.ComponentClasses:Values() do
 		component:_Start()
 	end
 	return
