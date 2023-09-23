@@ -23,10 +23,10 @@ export type AttributeValue =
 
 export type Guards = {
 	[string]: any;
-	IsA: string;
-	Attributes: { [string]: AttributeValue };
+	IsA: string?;
+	Attributes: { [string]: AttributeValue }?;
 	Ancestors: { Instance }?;
-	Children: Guards;
+	Children: Guards?;
 }
 
 export type ComponentDef = {

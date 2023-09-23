@@ -87,10 +87,10 @@ type InstanceGuard<T> = {
 	Value: T;
 }
 
-local validateGuards
+local validateGuards = nil
 local function validateGuard<T>(instance: Instance, guard: InstanceGuard<T>): nil
 	if guard.PropertyName == "Children" then
-		for childName, childGuards in guard.Value :: { [string]: Types.Guards } do
+		for childName, childGuards: Types.Guards in guard.Value :: any do
 			local child = instance:FindFirstChild(childName)
 			assert(child ~= nil, `Child "{childName}" does not exist on {instance:GetFullName()}!`)
 			validateGuards(child, childGuards)
@@ -136,13 +136,14 @@ local function validateGuard<T>(instance: Instance, guard: InstanceGuard<T>): ni
 	return
 end
 
-local function validateGuards(instance: Instance, guards: Types.Guards): nil
+function validateGuards(instance: Instance, guards: Types.Guards): nil
 	for propertyName, value in guards do
 		validateGuard(instance, {
 			PropertyName = propertyName,
 			Value = value
 		})
 	end
+	return
 end
 
 function Component:_ValidateDef(instance: Instance): nil
@@ -156,7 +157,7 @@ local function hasPrefix(name: string, prefix: string): boolean
 	return name:sub(1, #prefix) == prefix
 end
 
-function Component:Add(instance: Instance): ComponentInstance.ComponentInstance
+function Component:Add(instance: Instance): ComponentInstance.ComponentInstance?
 	local ignored = false
 	local componentDef: Def = self._def
 	if componentDef.IgnoreAncestors then
@@ -175,7 +176,7 @@ function Component:Add(instance: Instance): ComponentInstance.ComponentInstance
 	local propertyChangePrefix = "PropertyChanged_"
 	local attributeChangePrefix = "AttributeChanged_"
 
-	for name: string, fn in componentDef do
+	for name: string, fn in pairs(componentDef) do
 		if typeof(fn) ~= "function" then continue end
 
 		task.spawn(function()
