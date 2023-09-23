@@ -90,7 +90,7 @@ type InstanceGuard<T> = {
 local validateGuards
 local function validateGuard<T>(instance: Instance, guard: InstanceGuard<T>): nil
 	if guard.PropertyName == "Children" then
-		for childName, childGuards: InstanceGuard<any> in guard.Value :: any do
+		for childName, childGuards in guard.Value :: { [string]: Types.Guards } do
 			local child = instance:FindFirstChild(childName)
 			assert(child ~= nil, `Child "{childName}" does not exist on {instance:GetFullName()}!`)
 			validateGuards(child, childGuards)
@@ -136,7 +136,7 @@ local function validateGuard<T>(instance: Instance, guard: InstanceGuard<T>): ni
 	return
 end
 
-function validateGuards(instance: Instance, guards: { [string]: any }): nil
+local function validateGuards(instance: Instance, guards: Types.Guards): nil
 	for propertyName, value in guards do
 		validateGuard(instance, {
 			PropertyName = propertyName,

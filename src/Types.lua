@@ -21,7 +21,7 @@ export type AttributeValue =
 	| Rect
 	| Font
 
-type Guards = {
+export type Guards = {
 	[string]: any;
 	IsA: string;
 	Attributes: { [string]: AttributeValue };
