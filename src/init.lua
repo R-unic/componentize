@@ -101,13 +101,13 @@ type InstanceGuard<T> = {
 }
 
 local validateGuards = nil
-local function validateGuard<T>(instance: Instance, guard: InstanceGuard<T>): nil
-	local instanceName = ` ({instance.Name})`
+local function validateGuard<T>(componentName: string, instance: Instance, guard: InstanceGuard<T>): nil
+	local instanceName = ` ({componentName} :> {instance:GetFullName()})`
 	if guard.PropertyName == "Children" then
 		for childName, childGuards: Types.Guards in guard.Value :: any do
 			local child = instance:FindFirstChild(childName)
 			assert(child ~= nil, `Child "{childName}" does not exist on {instance:GetFullName()}!` .. instanceName)
-			validateGuards(child, childGuards)
+			validateGuards(componentName, child, childGuards)
 		end
 	elseif guard.PropertyName == "Ancestors" then
 		assert(typeof(guard.Value) == "table", "Ancestors property must be a table!" .. instanceName)
@@ -150,10 +150,10 @@ local function validateGuard<T>(instance: Instance, guard: InstanceGuard<T>): ni
 	return
 end
 
-function validateGuards(instance: Instance, guards: Types.Guards): nil
+function validateGuards(componentName: string, instance: Instance, guards: Types.Guards): nil
 	for propertyName, value in guards do
 		task.spawn(function()
-			validateGuard(instance, {
+			validateGuard(componentName, instance, {
 				PropertyName = propertyName,
 				Value = value
 			})
@@ -165,7 +165,7 @@ end
 function Component:_ValidateDef(instance: Instance): nil
 	local componentDef: Types.ComponentDef = self._def
 	if not componentDef.Guards then return end
-	validateGuards(instance, componentDef.Guards)
+	validateGuards(componentDef.Name, instance, componentDef.Guards)
 	return
 end
 
