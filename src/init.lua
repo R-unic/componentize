@@ -16,6 +16,22 @@ export type Component = typeof(Component) & {
 	OwnedComponents: typeof(Array);
 }
 
+type AttributeType =
+	"string"
+	| "boolean"
+	| "number"
+	| "Vector2"
+	| "Vector3"
+	| "CFrame"
+	| "Rect"
+	| "Font"
+	| "BrickColor"
+	| "Color"
+	| "UDim"
+	| "UDim2"
+	| "NumberSequence"
+	| "ColorSequence"
+
 function Component.Get(name: string): Component
 	local component = _G.ComponentClasses
 		:Find(function(component)
@@ -99,35 +115,42 @@ type InstanceGuard<T> = {
 	PropertyName: string;
 	Value: T;
 }
+type AttributeGuard = {
+	Type: AttributeType;
+	Value: Types.AttributeValue?;
+}
 
 local validateGuards = nil
 local function validateGuard<T>(componentName: string, instance: Instance, guard: InstanceGuard<T>): nil
-	local instanceName = ` ({componentName} :> {instance:GetFullName()})`
+	local stackInfo = ` ({componentName} :> {instance:GetFullName()})`
 	if guard.PropertyName == "Children" then
 		for childName, childGuards: Types.Guards in guard.Value :: any do
 			local child = instance:FindFirstChild(childName)
-			assert(child ~= nil, `Child "{childName}" does not exist on {instance:GetFullName()}!` .. instanceName)
+			assert(child ~= nil, `Child "{childName}" does not exist on {instance:GetFullName()}!` .. stackInfo)
 			validateGuards(componentName, child, childGuards)
 		end
 	elseif guard.PropertyName == "Ancestors" then
-		assert(typeof(guard.Value) == "table", "Ancestors property must be a table!" .. instanceName)
-		assert(#guard.Value > 0, "Ancestors property must have more than one element!" .. instanceName)
+		assert(typeof(guard.Value) == "table", "Ancestors property must be a table!" .. stackInfo)
+		assert(#guard.Value > 0, "Ancestors property must have more than one element!" .. stackInfo)
 
 		local ancestors = Array.new("Instance", guard.Value)
 		assert(ancestors:Some(function(ancestor)
 			return ancestor:IsAncestorOf(instance)
 		end), `Expected ancestors {ancestors} for instance {instance:GetFullName()}`)
 	elseif guard.PropertyName == "Attributes" then
-		assert(typeof(guard.Value) == "table", "Attributes property must be a table!" .. instanceName)
+		assert(typeof(guard.Value) == "table", "Attributes property must be a table!" .. stackInfo)
 		for name, value in instance:GetAttributes() do
-			if guard.Value[name] then
-				assert(guard.Value[name] == value, `Expected "{name}" attribute to equal {value}, got {guard.Value[name]}!` .. instanceName)
+			local attributeGuard = guard.Value[name] :: AttributeGuard?
+			if attributeGuard then
+				assert(attributeGuard.Type == typeof(value), `Expected "{name}" attribute's type to equal {value}, got {attributeGuard.Type}!` .. stackInfo)
+				if not attributeGuard.Value then continue end
+				assert(attributeGuard.Value == value, `Expected "{name}" attribute's value to equal {value}, got {attributeGuard.Value}!` .. stackInfo)
 			end
 		end
 	elseif guard.PropertyName == "IsA" then
-		assert(typeof(guard.Value) == "string" or typeof(guard.Value) == "Instance", "IsA property must be an Instance or a string!" .. instanceName)
+		assert(typeof(guard.Value) == "string" or typeof(guard.Value) == "Instance", "IsA property must be an Instance or a string!" .. stackInfo)
 
-		local message = `Expected instance {instance:GetFullName()} to be a sub-class of {guard.Value}, got {instance.ClassName}!` .. instanceName
+		local message = `Expected instance {instance:GetFullName()} to be a sub-class of {guard.Value}, got {instance.ClassName}!` .. stackInfo
 		if typeof(guard.Value) == "Instance" then
 			assert(instance:IsA(guard.Value.ClassName), message)
 		else
@@ -137,14 +160,14 @@ local function validateGuard<T>(componentName: string, instance: Instance, guard
 		local hasProperty = pcall(function()
 			return (instance :: any)[guard.PropertyName]
 		end)
-		assert(hasProperty, `Instance "{instance:GetFullName()}" does not have property "{guard.PropertyName}".` .. instanceName)
+		assert(hasProperty, `Instance "{instance:GetFullName()}" does not have property "{guard.PropertyName}".` .. stackInfo)
 
 		local propertyValue = (instance :: any)[guard.PropertyName]
 		local guardIsComputed = typeof(guard.Value) == "function"
 		if guardIsComputed then
-			assert((guard.Value :: any)(propertyValue), `Computed guard failed! Property name: "{guard.PropertyName}"` .. instanceName)
+			assert((guard.Value :: any)(propertyValue), `Computed guard failed! Property name: "{guard.PropertyName}"` .. stackInfo)
 		else
-			assert(guard.Value == propertyValue, `Expected value of instance property "{guard.PropertyName}" to equal {guard.Value}, got {(instance :: any)[guard.PropertyName]}!` .. instanceName)
+			assert(guard.Value == propertyValue, `Expected value of instance property "{guard.PropertyName}" to equal {guard.Value}, got {(instance :: any)[guard.PropertyName]}!` .. stackInfo)
 		end
 	end
 	return
