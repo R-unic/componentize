@@ -1,7 +1,7 @@
 --!native
 --!strict
+local RunService = game:GetService("RunService")
 local Janitor = require(script.Parent.Parent.Janitor)
-local ServiceEventLinker = require(script.Parent.Parent.ServiceEventLinker)
 local Types = require(script.Parent.Types)
 
 local ComponentInstance = {}
@@ -64,14 +64,10 @@ function ComponentInstance.new(instance: Instance, def: Types.ComponentDef): typ
 	end
 	
 	if doesFunctionExist("Update") then
-		local linker = ServiceEventLinker()
-		self:AddToJanitor(linker)
-		
-		local component = self
-		function linker:Run_Heartbeat(dt: number)
-			component:Update(dt)
-			return
-		end
+		local onUpdate: RBXScriptSignal = RunService[if RunService:IsServer() then "Heartbeat" else "RenderStepped"]
+		self:AddToJanitor(onUpdate:Connect(function(dt: number)
+			self:Update(dt)
+		end))
 	end
 	
 	return self :: any

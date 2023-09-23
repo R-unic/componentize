@@ -19,10 +19,5 @@ dependencies = []
 
 [[package]]
 name = "r-unic/componentize"
-version = "0.2.0"
-dependencies = [["Array", "r-unic/array@0.2.1"], ["Janitor", "howmanysmall/janitor@1.15.6"], ["ServiceEventLinker", "r-unic/service-event-linker@0.1.0"]]
-
-[[package]]
-name = "r-unic/service-event-linker"
-version = "0.1.0"
-dependencies = [["janitor", "howmanysmall/janitor@1.15.6"]]
+version = "0.2.5"
+dependencies = [["Array", "r-unic/array@0.2.1"], ["Janitor", "howmanysmall/janitor@1.15.6"]]
