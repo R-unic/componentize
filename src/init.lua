@@ -3,7 +3,7 @@
 local CollectionService = game:GetService("CollectionService")
 
 local ComponentInstance = require(script.ComponentInstance)
-local Array = require(script.Parent.Array)
+local Array = require(script.Array)
 local Types = require(script.Types)
 
 _G.ComponentClasses = _G.ComponentClasses or Array.new()
@@ -112,7 +112,7 @@ local function validateGuard<T>(instance: Instance, guard: InstanceGuard<T>): ni
 		end
 	elseif guard.PropertyName == "IsA" then
 		assert(typeof(guard.Value) == "string" or typeof(guard.Value) == "Instance", "IsA property must be an Instance or a string!")
-		
+
 		local message = `Expected instance {instance:GetFullName()} to be a sub-class of {guard.Value}, got {instance.ClassName}!`
 		if typeof(guard.Value) == "Instance" then
 			assert(instance:IsA(guard.Value.ClassName), message)
@@ -123,9 +123,15 @@ local function validateGuard<T>(instance: Instance, guard: InstanceGuard<T>): ni
 		local hasProperty = pcall(function()
 			return (instance :: any)[guard.PropertyName]
 		end)
-
 		assert(hasProperty, `Instance "{instance:GetFullName()}" does not have property "{guard.PropertyName}".`)
-		assert(guard.Value == (instance :: any)[guard.PropertyName], `Expected value of instance property "{guard.PropertyName}" to equal {guard.Value}, got {(instance :: any)[guard.PropertyName]}!`)
+
+		local propertyValue = (instance :: any)[guard.PropertyName]
+		local guardIsComputed = typeof(guard.Value) == "function"
+		if guardIsComputed then
+			assert((guard.Value :: any)(propertyValue), `Computed guard failed! Property name: "{guard.PropertyName}"`)
+		else
+			assert(guard.Value == propertyValue, `Expected value of instance property "{guard.PropertyName}" to equal {guard.Value}, got {(instance :: any)[guard.PropertyName]}!`)
+		end
 	end
 	return
 end
@@ -171,7 +177,7 @@ function Component:Add(instance: Instance): ComponentInstance.ComponentInstance
 
 	for name: string, fn in componentDef do
 		if typeof(fn) ~= "function" then continue end
-		
+
 		task.spawn(function()
 			local fn: (component: typeof(ComponentInstance)) -> () = fn
 			local rightName = name:split("_")[2]
@@ -199,7 +205,7 @@ function Component:Remove(instance: Instance, ignoreErrors: boolean?): nil
 	if ignoreErrors == nil then
 		ignoreErrors = false
 	end
-	
+
 	local component = (self :: any):Find(instance)
 	if not ignoreErrors then
 		assert(component ~= nil, `No {self._def.Name} components are attached to {instance:GetFullName()}`)

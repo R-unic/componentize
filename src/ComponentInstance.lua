@@ -21,7 +21,7 @@ type AttributeValue =
 	| ColorSequence
 	| NumberRange
 	| Rect
-	| Font;
+	| Font
 
 export type ComponentInstance = Options & typeof(ComponentInstance)
 export type Options = {
