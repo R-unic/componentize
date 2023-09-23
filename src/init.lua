@@ -103,6 +103,13 @@ local function validateGuard<T>(instance: Instance, guard: InstanceGuard<T>): ni
 		assert(ancestors:Some(function(ancestor)
 			return ancestor:IsAncestorOf(instance)
 		end), `Expected ancestors {ancestors} for instance {instance:GetFullName()}`)
+	elseif guard.PropertyName == "Attributes" then
+		assert(typeof(guard.Value) == "table", "Attributes property must be a table!")
+		for name, value in instance:GetAttributes() do
+			if guard.Value[name] then
+				assert(guard.Value[name] == value, `Expected "{name}" attribute to equal {value}, got {guard.Value[name]}!`)
+			end
+		end
 	elseif guard.PropertyName == "IsA" then
 		assert(typeof(guard.Value) == "string" or typeof(guard.Value) == "Instance", "IsA property must be an Instance or a string!")
 		
