@@ -23,12 +23,12 @@ type AttributeValue =
 	| Rect
 	| Font;
 
+export type ComponentInstance = Options & typeof(ComponentInstance)
 export type Options = {
 	Instance: Instance;
 	PrimaryPart: BasePart?;
 	Attributes: { [string]: AttributeValue };
 }
-export type ComponentInstance = Options & typeof(ComponentInstance)
 
 function ComponentInstance.new(instance: Instance, def: Types.ComponentDef): typeof(ComponentInstance)
 	local self = setmetatable({}, {
@@ -74,6 +74,7 @@ function ComponentInstance.new(instance: Instance, def: Types.ComponentDef): typ
 end
 
 function ComponentInstance:AddToJanitor<T>(object: T, methodName: (string | true)?, index: any?): T
+	if self._destroyed then return end
 	return (self._janitor.Add :: any)(self._janitor, object, methodName, index)
 end
 
