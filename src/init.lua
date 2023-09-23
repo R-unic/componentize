@@ -198,8 +198,10 @@ function Component:Remove(instance: Instance, ignoreErrors: boolean?): nil
 		assert(component ~= nil, `No {self._def.Name} components are attached to {instance:GetFullName()}`)
 	end
 
-	(self._ownedComponents :: any):RemoveValue(component)
-	component:Destroy()
+	if component then
+		(self._ownedComponents :: any):RemoveValue(component)
+		component:Destroy()
+	end
 	return
 end
 
