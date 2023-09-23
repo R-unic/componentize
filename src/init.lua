@@ -34,7 +34,9 @@ end
 function Component.LoadFolder(folder: Folder): nil
 	for _, module: Instance in folder:GetDescendants() do
 		if module:IsA("ModuleScript") then
-			Component.Load(module)
+			task.spawn(function()
+				Component.Load(module)
+			end)
 		end
 	end
 	return
@@ -42,7 +44,9 @@ end
 
 function Component.StartComponents(): nil
 	for component: Component in _G.ComponentClasses:Values() do
-		component:_Start()
+		task.spawn(function()
+			component:_Start()
+		end)
 	end
 	return
 end
@@ -77,7 +81,9 @@ function Component:_Start(): nil
 
 		Array.new("Instance", CollectionService:GetTagged(self._def.Name))
 			:ForEach(function(instance: Instance)
-				self:Add(instance)
+				task.spawn(function()
+					self:Add(instance)
+				end)
 			end)
 	end
 	return
@@ -146,10 +152,12 @@ end
 
 function validateGuards(instance: Instance, guards: Types.Guards): nil
 	for propertyName, value in guards do
-		validateGuard(instance, {
-			PropertyName = propertyName,
-			Value = value
-		})
+		task.spawn(function()
+			validateGuard(instance, {
+				PropertyName = propertyName,
+				Value = value
+			})
+		end)
 	end
 	return
 end

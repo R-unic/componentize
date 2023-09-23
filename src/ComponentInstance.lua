@@ -37,20 +37,22 @@ function ComponentInstance.new(instance: Instance, def: Types.ComponentDef): typ
 		end
 	})
 	
-	local function doesFunctionExist(name: string)
-		return self[name] ~= nil and typeof(self[name]) == "function"
-	end
-	
-	if doesFunctionExist("Initialize") then
-		self:Initialize()
-	end
-	
-	if doesFunctionExist("Update") then
-		local onUpdate: RBXScriptSignal = RunService[if RunService:IsServer() then "Heartbeat" else "RenderStepped"]
-		self:AddToJanitor(onUpdate:Connect(function(dt: number)
-			self:Update(dt)
-		end))
-	end
+	task.spawn(function()
+		local function doesFunctionExist(name: string)
+			return self[name] ~= nil and typeof(self[name]) == "function"
+		end
+		
+		if doesFunctionExist("Initialize") then
+			self:Initialize()
+		end
+		
+		if doesFunctionExist("Update") then
+			local onUpdate: RBXScriptSignal = RunService[if RunService:IsServer() then "Heartbeat" else "RenderStepped"]
+			self:AddToJanitor(onUpdate:Connect(function(dt: number)
+				self:Update(dt)
+			end))
+		end
+	end)
 	
 	return self :: any
 end
