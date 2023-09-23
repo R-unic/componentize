@@ -145,10 +145,12 @@ end
 function Component:Add(instance: Instance): ComponentInstance.ComponentInstance
 	local ignored = false
 	local componentDef: Def = self._def
-	for _, ignoredAncestor in componentDef.IgnoreAncestors do
-		if ignoredAncestor:IsAncestorOf(instance) then
-			ignored = true
-			break
+	if componentDef.IgnoreAncestors then
+		for _, ignoredAncestor in componentDef.IgnoreAncestors do
+			if ignoredAncestor:IsAncestorOf(instance) then
+				ignored = true
+				break
+			end
 		end
 	end
 
