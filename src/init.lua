@@ -65,7 +65,7 @@ function Component:_Start(): nil
 			self:Add(instance)
 		end)
 		CollectionService:GetInstanceRemovedSignal(self._def.Name):Connect(function(instance: Instance)
-			self:Remove(instance)
+			self:Remove(instance, true)
 		end)
 
 		Array.new("Instance", CollectionService:GetTagged(self._def.Name))
@@ -73,6 +73,7 @@ function Component:_Start(): nil
 				self:Add(instance)
 			end)
 	end
+	return
 end
 
 function Component:Find(instance: Instance): ComponentInstance.ComponentInstance?
@@ -187,9 +188,15 @@ function Component:Add(instance: Instance): ComponentInstance.ComponentInstance
 	return component :: ComponentInstance.ComponentInstance
 end
 
-function Component:Remove(instance: Instance): nil
+function Component:Remove(instance: Instance, ignoreErrors: boolean?): nil
+	if ignoreErrors == nil then
+		ignoreErrors = false
+	end
+	
 	local component = (self :: any):Find(instance)
-	assert(component ~= nil, `No {self._def.Name} components are attached to {instance:GetFullName()}`);
+	if not ignoreErrors then
+		assert(component ~= nil, `No {self._def.Name} components are attached to {instance:GetFullName()}`)
+	end
 
 	(self._ownedComponents :: any):RemoveValue(component)
 	component:Destroy()
