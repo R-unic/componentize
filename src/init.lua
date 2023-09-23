@@ -12,11 +12,14 @@ Component.__index = Component
 
 export type Def = Types.ComponentDef
 
-function Component.Get(name: string): typeof(Component)?
-	return _G.ComponentClasses
+function Component.Get(name: string): typeof(Component)
+	local component = _G.ComponentClasses
 		:Find(function(component)
 			return component.Name == name
 		end)
+
+	assert(component ~= nil, `Failed to get component: Component "{name}" does not exist!`)
+	return component
 end
 
 function Component.Load(module: ModuleScript): nil
