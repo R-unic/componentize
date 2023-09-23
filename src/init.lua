@@ -6,21 +6,21 @@ local ComponentInstance = require(script.ComponentInstance)
 local Array = require(script.Parent.Array)
 local Types = require(script.Types)
 
-local ComponentClasses = {}
+_G.ComponentClasses = _G.ComponentClasses or Array.new()
 local Component = {}
 Component.__index = Component
 
 export type Def = Types.ComponentDef
 
-function Component.Get(name: string): ComponentInstance.ComponentInstance?
-	return Array.new(ComponentClasses)
+function Component.Get(name: string): typeof(Component)?
+	return _G.ComponentClasses
 		:Find(function(component)
 			return component.Name == name
 		end)
 end
 
 function Component.Load(module: ModuleScript): nil
-	table.insert(ComponentClasses, require(module) :: any)
+	_G.ComponentClasses:Push(require(module) :: any)
 	return
 end
 
@@ -29,6 +29,13 @@ function Component.LoadFolder(folder: Folder): nil
 		if module:IsA("ModuleScript") then
 			Component.Load(module)
 		end
+	end
+	return
+end
+
+function Component.StartComponents(): nil
+	for component: typeof(Component) & { Name: string } in _G.ComponentClasses:Values() do
+		component:_Start()
 	end
 	return
 end
@@ -44,25 +51,28 @@ function Component.new(def: Types.ComponentDef, options: Types.ComponentOptions?
 	self._def = def
 	self._ownedComponents = Array.new("table")
 
-	local useTags = true
+	self._useTags = true
 	if options and options.UseTags ~= nil then
-		useTags = options.UseTags
+		self._useTags = options.UseTags
 	end
 
-	if useTags then
-		CollectionService:GetInstanceAddedSignal(def.Name):Connect(function(instance: Instance)
+	return self
+end
+
+function Component:_Start(): nil
+	if self._useTags then
+		CollectionService:GetInstanceAddedSignal(self._def.Name):Connect(function(instance: Instance)
 			self:Add(instance)
 		end)
-		CollectionService:GetInstanceRemovedSignal(def.Name):Connect(function(instance: Instance)
+		CollectionService:GetInstanceRemovedSignal(self._def.Name):Connect(function(instance: Instance)
 			self:Remove(instance)
 		end)
-		Array.new("Instance", CollectionService:GetTagged(def.Name))
+
+		Array.new("Instance", CollectionService:GetTagged(self._def.Name))
 			:ForEach(function(instance: Instance)
 				self:Add(instance)
 			end)
 	end
-
-	return self
 end
 
 function Component:Find(instance: Instance): ComponentInstance.ComponentInstance?
@@ -91,7 +101,7 @@ local function validateGuard<T>(instance: Instance, guard: InstanceGuard<T>): ni
 		local ancestors = Array.new("Instance", guard.Value)
 		assert(ancestors:Some(function(ancestor)
 			return ancestor:IsAncestorOf(instance)
-		end), `Expected ancestors {ancestors:ToTable()} for instance {instance:GetFullName()}`)
+		end), `Expected ancestors {ancestors} for instance {instance:GetFullName()}`)
 	elseif guard.PropertyName == "IsA" then
 		assert(typeof(guard.Value) == "string" or typeof(guard.Value) == "Instance", "IsA property must be an Instance or a string!")
 		
