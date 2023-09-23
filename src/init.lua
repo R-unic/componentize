@@ -96,31 +96,32 @@ type InstanceGuard<T> = {
 
 local validateGuards = nil
 local function validateGuard<T>(instance: Instance, guard: InstanceGuard<T>): nil
+	local instanceName = ` ({instance.Name})`
 	if guard.PropertyName == "Children" then
 		for childName, childGuards: Types.Guards in guard.Value :: any do
 			local child = instance:FindFirstChild(childName)
-			assert(child ~= nil, `Child "{childName}" does not exist on {instance:GetFullName()}!`)
+			assert(child ~= nil, `Child "{childName}" does not exist on {instance:GetFullName()}!` .. instanceName)
 			validateGuards(child, childGuards)
 		end
 	elseif guard.PropertyName == "Ancestors" then
-		assert(typeof(guard.Value) == "table", "Ancestors property must be a table!")
-		assert(#guard.Value > 0, "Ancestors property must have more than one element!")
+		assert(typeof(guard.Value) == "table", "Ancestors property must be a table!" .. instanceName)
+		assert(#guard.Value > 0, "Ancestors property must have more than one element!" .. instanceName)
 
 		local ancestors = Array.new("Instance", guard.Value)
 		assert(ancestors:Some(function(ancestor)
 			return ancestor:IsAncestorOf(instance)
 		end), `Expected ancestors {ancestors} for instance {instance:GetFullName()}`)
 	elseif guard.PropertyName == "Attributes" then
-		assert(typeof(guard.Value) == "table", "Attributes property must be a table!")
+		assert(typeof(guard.Value) == "table", "Attributes property must be a table!" .. instanceName)
 		for name, value in instance:GetAttributes() do
 			if guard.Value[name] then
-				assert(guard.Value[name] == value, `Expected "{name}" attribute to equal {value}, got {guard.Value[name]}!`)
+				assert(guard.Value[name] == value, `Expected "{name}" attribute to equal {value}, got {guard.Value[name]}!` .. instanceName)
 			end
 		end
 	elseif guard.PropertyName == "IsA" then
-		assert(typeof(guard.Value) == "string" or typeof(guard.Value) == "Instance", "IsA property must be an Instance or a string!")
+		assert(typeof(guard.Value) == "string" or typeof(guard.Value) == "Instance", "IsA property must be an Instance or a string!" .. instanceName)
 
-		local message = `Expected instance {instance:GetFullName()} to be a sub-class of {guard.Value}, got {instance.ClassName}!`
+		local message = `Expected instance {instance:GetFullName()} to be a sub-class of {guard.Value}, got {instance.ClassName}!` .. instanceName
 		if typeof(guard.Value) == "Instance" then
 			assert(instance:IsA(guard.Value.ClassName), message)
 		else
@@ -130,14 +131,14 @@ local function validateGuard<T>(instance: Instance, guard: InstanceGuard<T>): ni
 		local hasProperty = pcall(function()
 			return (instance :: any)[guard.PropertyName]
 		end)
-		assert(hasProperty, `Instance "{instance:GetFullName()}" does not have property "{guard.PropertyName}".`)
+		assert(hasProperty, `Instance "{instance:GetFullName()}" does not have property "{guard.PropertyName}".` .. instanceName)
 
 		local propertyValue = (instance :: any)[guard.PropertyName]
 		local guardIsComputed = typeof(guard.Value) == "function"
 		if guardIsComputed then
-			assert((guard.Value :: any)(propertyValue), `Computed guard failed! Property name: "{guard.PropertyName}"`)
+			assert((guard.Value :: any)(propertyValue), `Computed guard failed! Property name: "{guard.PropertyName}"` .. instanceName)
 		else
-			assert(guard.Value == propertyValue, `Expected value of instance property "{guard.PropertyName}" to equal {guard.Value}, got {(instance :: any)[guard.PropertyName]}!`)
+			assert(guard.Value == propertyValue, `Expected value of instance property "{guard.PropertyName}" to equal {guard.Value}, got {(instance :: any)[guard.PropertyName]}!` .. instanceName)
 		end
 	end
 	return
