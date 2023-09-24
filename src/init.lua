@@ -46,11 +46,11 @@ function Component.LoadFolder(folder: Folder): nil
 end
 
 function Component.StartComponents(): nil
-	for component: Component in _G.ComponentClasses:Values() do
-		task.spawn(function()
+	task.spawn(function()
+		for component: Component in _G.ComponentClasses:Values() do
 			component:_Start()
-		end)
-	end
+		end
+	end)
 	return
 end
 
@@ -84,9 +84,7 @@ function Component:_Start(): nil
 
 		Array.new("Instance", CollectionService:GetTagged(self._def.Name))
 			:ForEach(function(instance: Instance)
-				task.spawn(function()
-					self:Add(instance)
-				end)
+				self:Add(instance)
 			end)
 	end
 	return
@@ -153,12 +151,10 @@ end
 
 function validateGuards(componentName: string, instance: Instance, guards: Types.Guards): nil
 	for propertyName, value in guards do
-		task.spawn(function()
-			validateGuard(componentName, instance, {
-				PropertyName = propertyName,
-				Value = value
-			})
-		end)
+		validateGuard(componentName, instance, {
+			PropertyName = propertyName,
+			Value = value
+		})
 	end
 	return
 end
