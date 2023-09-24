@@ -6,7 +6,7 @@ local ComponentInstance = require(script.ComponentInstance)
 local Array = require(script.Parent.Array)
 local Types = require(script.Types)
 
-_G.ComponentClasses = _G.ComponentClasses or Array.new()
+_G.ComponentClasses = _G.ComponentClasses or Array.new("function")
 local Component = {}
 Component.__index = Component
 
@@ -23,16 +23,18 @@ type InstanceGuard<T> = {
 
 function Component.Get(name: string): Component
 	local component = _G.ComponentClasses
-		:Find(function(component)
-			return component.Name == name
+		:Find(function(component: () -> Component)
+			return component().Name == name
 		end)
 
 	assert(component ~= nil, `Failed to get component: Component "{name}" does not exist!`)
-	return component
+	return component()
 end
 
 function Component.Load(module: ModuleScript): nil
-	_G.ComponentClasses:Push(require(module) :: any)
+	_G.ComponentClasses:Push(function()
+		return require(module) :: any
+	end)
 	return
 end
 
@@ -46,8 +48,8 @@ function Component.LoadFolder(folder: Folder): nil
 end
 
 function Component.StartComponents(): nil
-	for component: Component in _G.ComponentClasses:Values() do
-		component:_Start()
+	for component: () -> Component in _G.ComponentClasses:Values() do
+		component():_Start()
 	end
 	return
 end
@@ -209,11 +211,7 @@ function Component:Add(instance: Instance): ComponentInstance.ComponentInstance?
 		end)
 	end
 
-	_G.ComponentClasses:FindAndRemove(function(component: Component): boolean
-		return component.Name == self.Name
-	end)
 	self.OwnedComponents:Push(component)
-	_G.ComponentClasses:Push(self)
 	return component :: ComponentInstance.ComponentInstance
 end
 
@@ -228,11 +226,10 @@ function Component:Remove(instance: Instance, ignoreErrors: boolean?): nil
 	end
 
 	if component then
-		_G.ComponentClasses:FindAndRemove(function(component: Component): boolean
-			return component.Name == self.Name
+		_G.ComponentClasses:FindAndRemove(function(component: () -> Component): boolean
+			return component().Name == self.Name
 		end);
 		(self.OwnedComponents :: any):RemoveValue(component)
-		_G.ComponentClasses:Push(self)
 		component:Destroy()
 	end
 	return
