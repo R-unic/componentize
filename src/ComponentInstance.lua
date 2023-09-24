@@ -37,27 +37,25 @@ function ComponentInstance.new(instance: Instance, def: Types.ComponentDef): typ
 		end
 	})
 	
-	task.spawn(function()
-		local function doesFunctionExist(name: string)
-			return self[name] ~= nil and typeof(self[name]) == "function"
-		end
-		
-		if doesFunctionExist("Initialize") then
-			self:Initialize()
-		end
-		
-		if doesFunctionExist("Update") then
-			local onUpdate: RBXScriptSignal = RunService[if RunService:IsServer() then "Heartbeat" else "RenderStepped"]
-			self:AddToJanitor(onUpdate:Connect(function(dt: number)
-				self:Update(dt)
-			end))
-		end
-	end)
+	local function doesFunctionExist(name: string)
+		return self[name] ~= nil and typeof(self[name]) == "function"
+	end
+	
+	if doesFunctionExist("Initialize") then
+		self:Initialize()
+	end
+	
+	if doesFunctionExist("Update") then
+		local onUpdate: RBXScriptSignal = RunService[if RunService:IsServer() then "Heartbeat" else "RenderStepped"]
+		self:AddToJanitor(onUpdate:Connect(function(dt: number)
+			self:Update(dt)
+		end))
+	end
 	
 	return self :: any
 end
 
-function ComponentInstance:AddToJanitor<T>(object: T, methodName: (string | true)?, index: any?): T
+function ComponentInstance:AddToJanitor<T>(object: T, methodName: (string | true)?, index: any?): T?
 	if self._destroyed then return end
 	return (self._janitor.Add :: any)(self._janitor, object, methodName, index)
 end
