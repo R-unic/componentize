@@ -21,10 +21,32 @@ export type AttributeValue =
 	| Rect
 	| Font
 
+export type AttributeType =
+	"string"
+	| "boolean"
+	| "number"
+	| "Vector2"
+	| "Vector3"
+	| "CFrame"
+	| "Rect"
+	| "Font"
+	| "BrickColor"
+	| "Color"
+	| "UDim"
+	| "UDim2"
+	| "NumberSequence"
+	| "ColorSequence"
+	| "NumberRange"
+
+export type AttributeGuard = {
+	Type: AttributeType;
+	Value: AttributeValue?;
+}
+
 export type Guards = {
 	[string]: any;
 	IsA: string?;
-	Attributes: { [string]: AttributeValue }?;
+	Attributes: { [string]: AttributeGuard }?;
 	Ancestors: { Instance }?;
 	Children: Guards?;
 }

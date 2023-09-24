@@ -16,21 +16,10 @@ export type Component = typeof(Component) & {
 	OwnedComponents: typeof(Array);
 }
 
-type AttributeType =
-	"string"
-	| "boolean"
-	| "number"
-	| "Vector2"
-	| "Vector3"
-	| "CFrame"
-	| "Rect"
-	| "Font"
-	| "BrickColor"
-	| "Color"
-	| "UDim"
-	| "UDim2"
-	| "NumberSequence"
-	| "ColorSequence"
+type InstanceGuard<T> = {
+	PropertyName: string;
+	Value: T;
+}
 
 function Component.Get(name: string): Component
 	local component = _G.ComponentClasses
@@ -111,15 +100,6 @@ function Component:Find(instance: Instance): ComponentInstance.ComponentInstance
 	end)
 end
 
-type InstanceGuard<T> = {
-	PropertyName: string;
-	Value: T;
-}
-type AttributeGuard = {
-	Type: AttributeType;
-	Value: Types.AttributeValue?;
-}
-
 local validateGuards = nil
 local function validateGuard<T>(componentName: string, instance: Instance, guard: InstanceGuard<T>): nil
 	local stackInfo = ` ({componentName} :> {instance:GetFullName()})`
@@ -140,7 +120,7 @@ local function validateGuard<T>(componentName: string, instance: Instance, guard
 	elseif guard.PropertyName == "Attributes" then
 		assert(typeof(guard.Value) == "table", "Attributes property must be a table!" .. stackInfo)
 		for name, value in instance:GetAttributes() do
-			local attributeGuard = guard.Value[name] :: AttributeGuard?
+			local attributeGuard = guard.Value[name] :: Types.AttributeGuard?
 			if attributeGuard then
 				assert(attributeGuard.Type == typeof(value), `Expected "{name}" attribute's type to equal {value}, got {attributeGuard.Type}!` .. stackInfo)
 				if not attributeGuard.Value then continue end
