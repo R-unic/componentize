@@ -8,5 +8,5 @@ registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 
 [dependencies]
-Janitor = "howmanysmall/janitor@1.15.6"
-Array = "r-unic/array@0.2.6"
+Janitor = "howmanysmall/janitor@^1.15"
+Array = "r-unic/array@0.2.7"

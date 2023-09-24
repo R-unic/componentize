@@ -105,7 +105,7 @@ local function validateGuard<T>(componentName: string, instance: Instance, guard
 	local stackInfo = ` ({componentName} :> {instance:GetFullName()})`
 	if guard.PropertyName == "Children" then
 		for childName, childGuards: Types.Guards in guard.Value :: any do
-			local child = instance:FindFirstChild(childName)
+			local child = instance:WaitForChild(childName, 7)
 			assert(child ~= nil, `Child "{childName}" does not exist on {instance:GetFullName()}!` .. stackInfo)
 			validateGuards(componentName, child, childGuards)
 		end
