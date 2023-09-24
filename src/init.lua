@@ -39,9 +39,7 @@ end
 function Component.LoadFolder(folder: Folder): nil
 	for _, module: Instance in folder:GetDescendants() do
 		if module:IsA("ModuleScript") then
-			task.spawn(function()
-				Component.Load(module)
-			end)
+			Component.Load(module)
 		end
 	end
 	return
@@ -217,7 +215,11 @@ function Component:Add(instance: Instance): ComponentInstance.ComponentInstance?
 		end)
 	end
 
+	_G.ComponentClasses:FindAndRemove(function(component: Component): boolean
+		return component.Name == self.Name
+	end)
 	self.OwnedComponents:Push(component)
+	_G.ComponentClasses:Push(self)
 	return component :: ComponentInstance.ComponentInstance
 end
 
@@ -232,7 +234,11 @@ function Component:Remove(instance: Instance, ignoreErrors: boolean?): nil
 	end
 
 	if component then
+		_G.ComponentClasses:FindAndRemove(function(component: Component): boolean
+			return component.Name == self.Name
+		end);
 		(self.OwnedComponents :: any):RemoveValue(component)
+		_G.ComponentClasses:Push(self)
 		component:Destroy()
 	end
 	return
