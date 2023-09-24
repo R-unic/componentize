@@ -46,11 +46,9 @@ function Component.LoadFolder(folder: Folder): nil
 end
 
 function Component.StartComponents(): nil
-	task.spawn(function()
-		for component: Component in _G.ComponentClasses:Values() do
-			component:_Start()
-		end
-	end)
+	for component: Component in _G.ComponentClasses:Values() do
+		component:_Start()
+	end
 	return
 end
 
