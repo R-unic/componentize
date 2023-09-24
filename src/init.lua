@@ -13,7 +13,7 @@ Component.__index = Component
 export type Def = Types.ComponentDef
 export type Component = typeof(Component) & {
 	Name: string;
-	OwnedComponents: typeof(Array);
+	OwnedComponents: typeof(Array.new("table"));
 }
 
 type InstanceGuard<T> = {
