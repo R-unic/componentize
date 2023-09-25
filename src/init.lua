@@ -13,6 +13,7 @@ Component.__index = Component
 export type Def = Types.ComponentDef
 export type Component = typeof(Component) & {
 	Name: string;
+	LoadOrder: number?;
 	OwnedComponents: typeof(Array.new("table"));
 }
 
@@ -48,7 +49,13 @@ function Component.LoadFolder(folder: Folder): nil
 end
 
 function Component.StartComponents(): nil
-	for component: () -> Component in _G.ComponentClasses:Values() do
+	local orderedComponents = _G.ComponentClasses:Sort(function(a: () -> Component, b: () -> Component)
+		local aOrder = a().LoadOrder
+		local bOrder = b().LoadOrder
+		return if aOrder and bOrder then aOrder < bOrder else false
+	end)
+
+	for component: () -> Component in orderedComponents:Values() do
 		component():_Start()
 	end
 	return
@@ -63,6 +70,7 @@ function Component.new(def: Types.ComponentDef, options: Types.ComponentOptions?
 	local self = setmetatable({}, Component)
 	self.OwnedComponents = Array.new("table")
 	self.Name = def.Name
+	self.LoadOrder = def.LoadOrder
 	self._def = def
 
 	self._useTags = true

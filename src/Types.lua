@@ -53,8 +53,10 @@ export type Guards = {
 
 export type ComponentDef = {
 	Name: string;
+	LoadOrder: number?;
 	IgnoreAncestors: { Instance }?;
 	Guards: Guards?;
+	[string]: any;
 }
 
 return {}
