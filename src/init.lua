@@ -82,19 +82,21 @@ function Component.new(def: Types.ComponentDef, options: Types.ComponentOptions?
 end
 
 function Component:_Start(): nil
-	if self._useTags then
-		CollectionService:GetInstanceAddedSignal(self._def.Name):Connect(function(instance: Instance)
-			self:Add(instance)
-		end)
-		CollectionService:GetInstanceRemovedSignal(self._def.Name):Connect(function(instance: Instance)
-			self:Remove(instance, true)
-		end)
-
-		Array.new("Instance", CollectionService:GetTagged(self._def.Name))
-			:ForEach(function(instance: Instance)
+	task.spawn(function()
+		if self._useTags then
+			CollectionService:GetInstanceAddedSignal(self._def.Name):Connect(function(instance: Instance)
 				self:Add(instance)
 			end)
-	end
+			CollectionService:GetInstanceRemovedSignal(self._def.Name):Connect(function(instance: Instance)
+				self:Remove(instance, true)
+			end)
+	
+			Array.new("Instance", CollectionService:GetTagged(self._def.Name))
+				:ForEach(function(instance: Instance)
+					self:Add(instance)
+				end)
+		end
+	end)
 	return
 end
 
