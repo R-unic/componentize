@@ -32,9 +32,20 @@ function Component.Get(name: string): Component
 	return component()
 end
 
+local COMPONENT_CACHE = {}
 function Component.Load(module: ModuleScript): nil
 	_G.ComponentClasses:Push(function()
-		return require(module) :: any
+		if COMPONENT_CACHE[module.Name] then
+			return COMPONENT_CACHE[module.Name]
+		end
+
+		local success, result = pcall(require, module)
+		if not success then
+			error(`Failed to load {module:GetFullName()}: {result}`)
+		end
+
+		COMPONENT_CACHE[module.Name] = result
+		return result
 	end)
 	return
 end
@@ -172,7 +183,7 @@ end
 function Component:_ValidateDef(instance: Instance): nil
 	local componentDef: Types.ComponentDef = self._def
 	if not componentDef.Guards then return end
-	validateGuards(componentDef.Name, instance, componentDef.Guards)
+	validateGuards(componentDef.Name, instance, componentDef.Guards or {})
 	return
 end
 
