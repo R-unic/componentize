@@ -56,6 +56,7 @@ export type ComponentDef = {
 	LoadOrder: number?;
 	IgnoreAncestors: { Instance }?;
 	Guards: Guards?;
+	NoErrorGuards: { string };
 	[string]: any;
 }
 

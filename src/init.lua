@@ -118,64 +118,88 @@ function Component:Find(instance: Instance): ComponentInstance.ComponentInstance
 end
 
 local validateGuards = nil
-local function validateGuard<T>(componentName: string, instance: Instance, guard: InstanceGuard<T>): nil
+local function validateGuard<T>(componentName: string, instance: Instance, guard: InstanceGuard<T>, noError: boolean): nil
 	local stackInfo = ` ({componentName} :> {instance:GetFullName()})`
+	local invalidate: (msg: string) -> nil = if noError then warn else error
+	
 	if guard.PropertyName == "Children" then
 		for childName, childGuards: Types.Guards in guard.Value :: any do
 			local child = instance:WaitForChild(childName, 7)
-			assert(child ~= nil, `Child "{childName}" does not exist on {instance:GetFullName()}!` .. stackInfo)
-			validateGuards(componentName, child, childGuards)
+			if not child then
+				return invalidate(`Child "{childName}" does not exist on {instance:GetFullName()}!{stackInfo}`)
+			end
+			validateGuards(componentName, child, childGuards, true)
 		end
 	elseif guard.PropertyName == "Ancestors" then
-		assert(typeof(guard.Value) == "table", "Ancestors property must be a table!" .. stackInfo)
-		assert(#guard.Value > 0, "Ancestors property must have more than one element!" .. stackInfo)
+		if typeof(guard.Value) ~= "table" then
+			return invalidate("Ancestors property must be a table!" .. stackInfo)
+		end
+		if #guard.Value <= 0 then
+			return invalidate("Ancestors property must have more than one element!" .. stackInfo)
+		end
 
 		local ancestors = Array.new("Instance", guard.Value)
-		assert(ancestors:Some(function(ancestor)
+		local matchedAncestor = ancestors:Some(function(ancestor)
 			return ancestor:IsAncestorOf(instance)
-		end), `Expected ancestors {ancestors} for instance {instance:GetFullName()}`)
+		end)
+
+		if not matchedAncestor then
+			return invalidate(`Expected ancestors {ancestors} for instance {instance:GetFullName()}`)
+		end
 	elseif guard.PropertyName == "Attributes" then
 		assert(typeof(guard.Value) == "table", "Attributes property must be a table!" .. stackInfo)
 		for name, value in instance:GetAttributes() do
 			local attributeGuard = guard.Value[name] :: Types.AttributeGuard?
 			if attributeGuard then
-				assert(attributeGuard.Type == typeof(value), `Expected "{name}" attribute's type to equal {value}, got {attributeGuard.Type}!` .. stackInfo)
+				if typeof(value) ~= attributeGuard.Type then 
+					return invalidate(`Expected "{name}" attribute's type to equal {value}, got {attributeGuard.Type}!{stackInfo}`)
+				end
+
 				if not attributeGuard.Value then continue end
-				assert(attributeGuard.Value == value, `Expected "{name}" attribute's value to equal {value}, got {attributeGuard.Value}!` .. stackInfo)
+				if attributeGuard.Value ~= value then
+					return invalidate(`Expected "{name}" attribute's value to equal {value}, got {attributeGuard.Value}!{stackInfo}`)
+				end
 			end
 		end
 	elseif guard.PropertyName == "IsA" then
-		assert(typeof(guard.Value) == "string" or typeof(guard.Value) == "Instance", "IsA property must be an Instance or a string!" .. stackInfo)
+		if typeof(guard.Value) ~= "string" and typeof(guard.Value) ~= "Instance" then
+			return invalidate("IsA property must be an Instance or a string!" .. stackInfo)
+		end
 
-		local message = `Expected instance {instance:GetFullName()} to be a sub-class of {guard.Value}, got {instance.ClassName}!` .. stackInfo
-		if typeof(guard.Value) == "Instance" then
-			assert(instance:IsA(guard.Value.ClassName), message)
-		else
-			assert(instance:IsA(guard.Value), message)
+		local message = `Expected instance {instance:GetFullName()} to be a sub-class of {guard.Value}, got {instance.ClassName}!{stackInfo}`
+		if not instance:IsA(if typeof(guard.Value) == "Instance" then guard.Value.ClassName else guard.Value) then
+			return invalidate(message)
 		end
 	else
 		local hasProperty = pcall(function()
 			return (instance :: any)[guard.PropertyName]
 		end)
-		assert(hasProperty, `Instance "{instance:GetFullName()}" does not have property "{guard.PropertyName}".` .. stackInfo)
+		if not hasProperty then
+			return invalidate(`Instance "{instance:GetFullName()}" does not have property "{guard.PropertyName}".{stackInfo}`)
+		end
 
 		local propertyValue = (instance :: any)[guard.PropertyName]
 		local guardIsComputed = typeof(guard.Value) == "function"
 		if guardIsComputed then
-			assert((guard.Value :: any)(propertyValue), `Computed guard failed! Property name: "{guard.PropertyName}"` .. stackInfo)
+			if not (guard.Value :: any)(propertyValue) then
+				return invalidate(`Computed guard failed! Property name: "{guard.PropertyName}"{stackInfo}`)
+			end
 		else
-			assert(guard.Value == propertyValue, `Expected value of instance property "{guard.PropertyName}" to equal {guard.Value}, got {(instance :: any)[guard.PropertyName]}!` .. stackInfo)
+			if guard.Value ~= propertyValue then
+				return invalidate(`Expected value of instance property "{guard.PropertyName}" to equal {guard.Value}, got {(instance :: any)[guard.PropertyName]}!{stackInfo}`)
+			end
 		end
 	end
 	return
 end
 
-function validateGuards(componentName: string, instance: Instance, guards: Types.Guards): nil
+function validateGuards(componentName: string, instance: Instance, guards: Types.Guards, noErrorGuards: { string } | boolean): nil
 	for propertyName, value in guards do
+		local noError = if type(noErrorGuards) == "table" then Array.new("string", noErrorGuards or {}):Has(propertyName) else noErrorGuards
 		validateGuard(componentName, instance, {
 			PropertyName = propertyName,
 			Value = value
-		})
+		}, noError)
 	end
 	return
 end
@@ -183,7 +207,7 @@ end
 function Component:_ValidateDef(instance: Instance): nil
 	local componentDef: Types.ComponentDef = self._def
 	if not componentDef.Guards then return end
-	validateGuards(componentDef.Name, instance, componentDef.Guards or {})
+	validateGuards(componentDef.Name, instance, componentDef.Guards or {}, componentDef.NoErrorGuards or {})
 	return
 end
 
