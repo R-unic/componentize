@@ -261,9 +261,7 @@ function Component:Add(instance: Instance): ComponentInstance.ComponentInstance?
 end
 
 function Component:Remove(instance: Instance, ignoreErrors: boolean?): nil
-	if ignoreErrors == nil then
-		ignoreErrors = false
-	end
+	ignoreErrors = ignoreErrors or false
 
 	local component = (self :: any):Find(instance)
 	if not ignoreErrors then
@@ -275,6 +273,8 @@ function Component:Remove(instance: Instance, ignoreErrors: boolean?): nil
 			return component().Name == self.Name
 		end);
 		(self.OwnedComponents :: any):RemoveValue(component)
+
+		if not instance.Parent then return end
 		component:Destroy()
 	end
 	return
